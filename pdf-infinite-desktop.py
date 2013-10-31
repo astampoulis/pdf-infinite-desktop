@@ -20,6 +20,13 @@
 #     (pressing space again disables mouse move)
 #  - Next/previous pages of a PDF with n/p or PgUp/PgDn
 #  - Duplicate a PDF with d
+#
+#
+# This was written sometime in 2009 as a proof-of-concept and was
+# ported to current Clutter (1.16) in 2013. I have not yet adapted the
+# code to use all the nice new features of Clutter, which would
+# simplify a lot of the code.
+
 
 
 from gi.repository import Clutter, Poppler, Gtk, Gdk, GLib, Cogl
@@ -449,8 +456,7 @@ class Desktop:
             self.background.show()
             stage.add_actor(self.background)
         except Exception:
-            c = Clutter.Color()
-            c.from_string('Dark Blue')
+            c = Clutter.Color.get_static(Clutter.StaticColor.DARK_BLUE)
             stage.set_color(c)
             self.background = None
 
@@ -461,6 +467,7 @@ class Desktop:
         stage.connect('key-press-event', self.on_key_press_event)
         stage.connect('fullscreen', self.on_resize)
         stage.connect('unfullscreen', self.on_resize)
+        stage.connect('delete-event', self.on_quit)
 
         self.stage = stage
         self.stage.show_all()
@@ -737,8 +744,9 @@ class Space:
             if key != self.desktop.selected_entity:
                 key.update()
         if self.desktop.selected_entity:
-            self.desktop.selected_entity.update()
-
+            selected = self.desktop.selected_entity
+            selected.update()
+            
     def add(self, entity, pos = None):
 
         w, h = entity.get_size()
